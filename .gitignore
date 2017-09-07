@@ -2,3 +2,4 @@
 
 build
 .dep
+build_all/*.bin
