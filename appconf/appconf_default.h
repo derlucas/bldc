@@ -40,7 +40,7 @@
 // The default app is UART in case the UART port is used for
 // firmware updates.
 #ifndef APPCONF_APP_TO_USE
-#define APPCONF_APP_TO_USE					APP_UART
+#define APPCONF_APP_TO_USE					APP_EV
 #endif
 
 // PPM app configureation
@@ -159,6 +159,41 @@
 #endif
 #ifndef APPCONF_ADC_UPDATE_RATE_HZ
 #define APPCONF_ADC_UPDATE_RATE_HZ			500
+#endif
+
+
+#ifndef APPCONF_EV_VOLTAGE1_START
+#define APPCONF_EV_VOLTAGE1_START			0.2
+#endif
+#ifndef APPCONF_EV_VOLTAGE1_END
+#define APPCONF_EV_VOLTAGE1_END				3.2
+#endif
+#ifndef APPCONF_EV_VOLTAGE2_START
+#define APPCONF_EV_VOLTAGE2_START			0.2
+#endif
+#ifndef APPCONF_EV_VOLTAGE2_END
+#define APPCONF_EV_VOLTAGE2_END				3.2
+#endif
+#ifndef APPCONF_EV_USE_FILTER
+#define APPCONF_EV_USE_FILTER				true
+#endif
+#ifndef APPCONF_EV_THROTTLE_EXP
+#define APPCONF_EV_THROTTLE_EXP				0.0
+#endif
+#ifndef APPCONF_EV_THROTTLE_EXP_BRAKE
+#define APPCONF_EV_THROTTLE_EXP_BRAKE		0.0
+#endif
+#ifndef APPCONF_EV_THROTTLE_EXP_MODE
+#define APPCONF_EV_THROTTLE_EXP_MODE		THR_EXP_POLY
+#endif
+#ifndef APPCONF_EV_RAMP_TIME_POS
+#define APPCONF_EV_RAMP_TIME_POS			0.2
+#endif
+#ifndef APPCONF_EV_RAMP_TIME_NEG
+#define APPCONF_EV_RAMP_TIME_NEG			0.0
+#endif
+#ifndef APPCONF_EV_UPDATE_RATE_HZ
+#define APPCONF_EV_UPDATE_RATE_HZ			500
 #endif
 
 // UART app

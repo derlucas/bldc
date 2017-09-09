@@ -339,9 +339,7 @@ typedef struct {
 	float ramp_time_pos;
 	float ramp_time_neg;
 	uint32_t update_rate_hz;
-
 	uint16_t wheel_perimeter;
-	uint8_t pulse_per_revolution;
 	bool use_pulse;
 	bool use_display;
 	bool use_display_vmax;
@@ -499,6 +497,7 @@ typedef enum {
 	COMM_ALIVE,
 	COMM_GET_DECODED_PPM,
 	COMM_GET_DECODED_ADC,
+	COMM_GET_DECODED_EV,
 	COMM_GET_DECODED_CHUK,
 	COMM_FORWARD_CAN,
 	COMM_SET_CHUCK_DATA,

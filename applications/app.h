@@ -55,4 +55,14 @@ void app_custom_start(void);
 void app_custom_stop(void);
 void app_custom_configure(app_configuration *conf);
 
+// EV app
+void app_ev_start(void);
+void app_ev_stop(void);
+void app_ev_configure(ev_config *conf);
+float app_ev_get_decoded_level1(void);
+float app_ev_get_voltage1(void);
+float app_ev_get_decoded_level2(void);
+float app_ev_get_voltage2(void);
+
+
 #endif /* APP_H_ */
