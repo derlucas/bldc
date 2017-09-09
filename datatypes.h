@@ -245,6 +245,7 @@ typedef enum {
 	APP_ADC_UART,
 	APP_NUNCHUK,
 	APP_NRF,
+	APP_EV,
 	APP_CUSTOM
 } app_use;
 
@@ -325,6 +326,37 @@ typedef struct {
 	float tc_max_diff;
 	uint32_t update_rate_hz;
 } adc_config;
+
+typedef struct {
+	float voltage1_start;
+	float voltage1_end;
+	float voltage2_start;
+	float voltage2_end;
+	bool use_filter;
+	float throttle_exp;
+	float throttle_exp_brake;
+	thr_exp_mode throttle_exp_mode;
+	float ramp_time_pos;
+	float ramp_time_neg;
+	uint32_t update_rate_hz;
+
+	uint16_t wheel_perimeter;
+	uint8_t pulse_per_revolution;
+	bool use_pulse;
+	bool use_display;
+	bool use_display_vmax;
+	bool use_pas;
+	bool use_throttle;
+	bool use_throttle_brake;
+	float mode_1_current;
+	float mode_2_current;
+	float mode_3_current;
+	float mode_4_current;
+	float mode_5_current;
+	float mode_6_current;
+	uint8_t mode_6_speed;
+
+} ev_config;
 
 // Nunchuk control types
 typedef enum {
@@ -419,6 +451,8 @@ typedef struct {
 
 	// ADC application settings
 	adc_config app_adc_conf;
+
+	ev_config app_ev_conf;
 
 	// UART application settings
 	uint32_t app_uart_baudrate;

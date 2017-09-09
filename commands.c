@@ -593,6 +593,37 @@ void commands_process_packet(unsigned char *data, unsigned int len) {
 		ind += 3;
 		appconf.app_nrf_conf.send_crc_ack = data[ind++];
 
+		// EV App Data
+		appconf.app_ev_conf.voltage1_start = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.voltage1_end = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.voltage2_start = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.voltage2_end = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.use_filter = data[ind++];
+		appconf.app_ev_conf.update_rate_hz = buffer_get_uint16(data, &ind);
+		appconf.app_ev_conf.wheel_perimeter = buffer_get_uint16(data, &ind);
+		appconf.app_ev_conf.pulse_per_revolution = data[ind++];
+		appconf.app_ev_conf.use_pulse = data[ind++];
+		appconf.app_ev_conf.ramp_time_pos = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.ramp_time_neg = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.use_display = data[ind++];
+		appconf.app_ev_conf.use_display_vmax = data[ind++];
+		appconf.app_ev_conf.use_pas = data[ind++];
+		appconf.app_ev_conf.use_throttle = data[ind++];
+		appconf.app_ev_conf.use_throttle_brake = data[ind++];
+		appconf.app_ev_conf.throttle_exp = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.throttle_exp_brake = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.throttle_exp_mode = data[ind++];
+
+		appconf.app_ev_conf.mode_1_current = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.mode_2_current = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.mode_3_current = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.mode_4_current = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.mode_5_current = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.mode_6_current = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.mode_6_speed = data[ind++];
+
+
+
 		conf_general_store_app_configuration(&appconf);
 		app_set_configuration(&appconf);
 		timeout_configure(appconf.timeout_msec, appconf.timeout_brake_current);
@@ -990,6 +1021,35 @@ void commands_send_appconf(COMM_PACKET_ID packet_id, app_configuration *appconf)
 	memcpy(send_buffer + ind, appconf->app_nrf_conf.address, 3);
 	ind += 3;
 	send_buffer[ind++] = appconf->app_nrf_conf.send_crc_ack;
+
+
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.voltage1_start, &ind);
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.voltage1_end, &ind);
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.voltage2_start, &ind);
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.voltage2_end, &ind);
+	send_buffer[ind++] = appconf->app_ev_conf.use_filter;
+	buffer_append_uint16(send_buffer, appconf->app_ev_conf.update_rate_hz, &ind);
+	buffer_append_uint16(send_buffer, appconf->app_ev_conf.wheel_perimeter, &ind);
+	send_buffer[ind++] = appconf->app_ev_conf.pulse_per_revolution;
+	send_buffer[ind++] = appconf->app_ev_conf.use_pulse;
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.ramp_time_pos, &ind);
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.ramp_time_neg, &ind);
+	send_buffer[ind++] = appconf->app_ev_conf.use_display;
+	send_buffer[ind++] = appconf->app_ev_conf.use_display_vmax;
+	send_buffer[ind++] = appconf->app_ev_conf.use_pas;
+	send_buffer[ind++] = appconf->app_ev_conf.use_throttle;
+	send_buffer[ind++] = appconf->app_ev_conf.use_throttle_brake;
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.throttle_exp, &ind);
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.throttle_exp_brake, &ind);
+	send_buffer[ind++] = appconf->app_ev_conf.throttle_exp_mode;
+
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.mode_1_current, &ind);
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.mode_2_current, &ind);
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.mode_3_current, &ind);
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.mode_4_current, &ind);
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.mode_5_current, &ind);
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.mode_6_current, &ind);
+	send_buffer[ind++] = appconf->app_ev_conf.mode_6_speed;
 
 	commands_send_packet(send_buffer, ind);
 }
