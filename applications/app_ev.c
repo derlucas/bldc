@@ -22,11 +22,14 @@
 #include "ch.h"
 #include "hal.h"
 #include "stm32f4xx_conf.h"
+#include "servo_dec.h"
 #include "mc_interface.h"
+#include "commands.h"
 #include "timeout.h"
 #include "utils.h"
 #include "hw.h"
 #include <math.h>
+#include <stdio.h>
 
 // Settings
 #define MIN_MS_WITHOUT_POWER			500
@@ -46,7 +49,12 @@ static volatile float decoded_level2 = 0.0;
 static volatile float read_voltage2 = 0.0;
 static volatile bool stop_now = true;
 static volatile bool is_running = false;
-static volatile bool throttle_released_after_brake = false;
+static volatile bool throttle_released_after_brake = true;
+static volatile int runmode = 0;
+
+float get_mode_value(void);
+
+
 
 void app_ev_configure(ev_config *conf) {
 	config = *conf;
@@ -60,6 +68,11 @@ void app_ev_start() {
 
 void app_ev_stop(void) {
 	stop_now = true;
+
+	if(is_running) {
+		servodec_stop();
+	}
+
 	while (is_running) {
 		chThdSleepMilliseconds(1);
 	}
@@ -90,6 +103,18 @@ float get_adc_voltage(uint8_t adc_index) {
 	return val;
 }
 
+float get_mode_value() {
+	switch (runmode) {
+		case 0: return config.mode_1_current;
+		case 1: return config.mode_2_current;
+		case 2: return config.mode_3_current;
+		case 3: return config.mode_4_current;
+		case 4: return config.mode_5_current;
+		case 5: return config.mode_6_current;
+		default: return config.mode_1_current;
+	}
+}
+
 static THD_FUNCTION(ev_thread, arg) {
 	(void)arg;
 
@@ -98,6 +123,8 @@ static THD_FUNCTION(ev_thread, arg) {
 	// Set servo pin as an input with pullup
 	palSetPadMode(HW_ICU_GPIO, HW_ICU_PIN, PAL_MODE_INPUT_PULLUP);
 
+	servodec_set_pulse_options(10, 500, false);
+	servodec_init(0);
 	is_running = true;
 
 	for(;;) {
@@ -170,16 +197,41 @@ static THD_FUNCTION(ev_thread, arg) {
 		decoded_level2 = brake;
 
 
-		//bool pas_pin = !palReadPad(HW_ICU_GPIO, HW_ICU_PIN);
 
 
-		float pwr = throttle;
+		bool is_pedaling = false;
 
-		if(brake > 0.01) {	// if brake is at least 1% use brake for power
+		float pwr = 0;
+
+		if(config.use_pas) {
+			uint32_t last_servo_time = servodec_get_time_since_update();
+
+			//commands_printf("val: %.4f   time: %d", (double)servo_val, last_servo_time);
+			if(last_servo_time < 1000) {
+				is_pedaling = true;
+			}
+
+
+			if(is_pedaling) {
+				pwr = get_mode_value();
+			}
+		}
+
+		if(config.use_throttle) {
+			if(config.use_pas) {
+				if(is_pedaling) {
+					pwr = utils_max_abs(pwr, throttle);
+				}
+			} else {
+				pwr = throttle;
+			}
+		}
+
+		if(config.use_throttle_brake && brake > 0.01) {	// if brake is at least 1% use brake for power
 			pwr = -brake;
 			throttle_released_after_brake = false;
 		} else {
-			// make sure the user released the throttle after braking
+			// make sure the user released the throttle after braking, otherwise disable pwr
 
 			if(!throttle_released_after_brake) {
 				if(throttle <= 0.01) {
@@ -196,7 +248,7 @@ static THD_FUNCTION(ev_thread, arg) {
 
 		// now pwr contains a value between -1.0 (braking) and 1.0 (full throttle)
 
-		// Apply ramping
+		// Apply global ramping
 		static systime_t last_time = 0;
 		static float pwr_ramp = 0.0;
 		const float ramp_time = fabsf(pwr) > fabsf(pwr_ramp) ? config.ramp_time_pos : config.ramp_time_neg;
