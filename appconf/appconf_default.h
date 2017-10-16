@@ -193,7 +193,7 @@
 #define APPCONF_EV_RAMP_TIME_NEG			0.0
 #endif
 #ifndef APPCONF_EV_UPDATE_RATE_HZ
-#define APPCONF_EV_UPDATE_RATE_HZ			500
+#define APPCONF_EV_UPDATE_RATE_HZ			100
 #endif
 
 // UART app

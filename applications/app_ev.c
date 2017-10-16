@@ -28,6 +28,7 @@
 #include "timeout.h"
 #include "utils.h"
 #include "hw.h"
+#include "s_lcd3.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -50,9 +51,12 @@ static volatile float read_voltage2 = 0.0;
 static volatile bool stop_now = true;
 static volatile bool is_running = false;
 static volatile bool throttle_released_after_brake = true;
-static volatile int runmode = 0;
+static volatile int runmode = 1;
+
 
 float get_mode_value(void);
+
+
 
 
 
@@ -63,11 +67,16 @@ void app_ev_configure(ev_config *conf) {
 
 void app_ev_start() {
 	stop_now = false;
+
 	chThdCreateStatic(ev_thread_wa, sizeof(ev_thread_wa), NORMALPRIO, ev_thread, NULL);
+
+	s_lcd3_start();
 }
 
 void app_ev_stop(void) {
 	stop_now = true;
+
+	s_lcd3_stop();
 
 	if(is_running) {
 		servodec_stop();
@@ -76,6 +85,8 @@ void app_ev_stop(void) {
 	while (is_running) {
 		chThdSleepMilliseconds(1);
 	}
+
+
 }
 
 float app_ev_get_decoded_level1(void) {
@@ -105,15 +116,18 @@ float get_adc_voltage(uint8_t adc_index) {
 
 float get_mode_value() {
 	switch (runmode) {
-		case 0: return config.mode_1_current;
-		case 1: return config.mode_2_current;
-		case 2: return config.mode_3_current;
-		case 3: return config.mode_4_current;
-		case 4: return config.mode_5_current;
-		case 5: return config.mode_6_current;
+		case 0: return 0;
+		case 1: return config.mode_1_current;
+		case 2: return config.mode_2_current;
+		case 3: return config.mode_3_current;
+		case 4: return config.mode_4_current;
+		case 5: return config.mode_5_current;
+		case 6: return config.mode_6_current;
 		default: return config.mode_1_current;
 	}
 }
+
+
 
 static THD_FUNCTION(ev_thread, arg) {
 	(void)arg;
@@ -214,12 +228,26 @@ static THD_FUNCTION(ev_thread, arg) {
 
 			if(is_pedaling) {
 				pwr = get_mode_value();
+
+			}
+
+			// Apply PAS ramping (TODO: make this configurable)
+			static systime_t last_time_pas = 0;
+			static float pwr_ramp_pas = 0.0;
+			const float ramp_time_pas = fabsf(pwr) > fabsf(pwr_ramp_pas) ? 5 : 5;
+
+			if (ramp_time_pas > 0.01) {
+				const float ramp_step_pas = (float)ST2MS(chVTTimeElapsedSinceX(last_time_pas)) / (ramp_time_pas * 1000.0);
+				utils_step_towards(&pwr_ramp_pas, pwr, ramp_step_pas);
+				last_time_pas = chVTGetSystemTimeX();
+				pwr = pwr_ramp_pas;
 			}
 		}
 
 		if(config.use_throttle) {
 			if(config.use_pas) {
 				if(is_pedaling) {
+					// throttle allows giving more power than pas mode would normally be
 					pwr = utils_max_abs(pwr, throttle);
 				}
 			} else {
