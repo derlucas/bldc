@@ -20,7 +20,7 @@
 * Openloop RPM calculation bug fix.
 
 === FW 3.25 ===
-* APP multi-VESC PID control: send current instead of duty cycle for better load sharing.
+* APP multi-ESC PID control: send current instead of duty cycle for better load sharing.
 * Added relative current commands to mc_interface and comm_can.
 * APP ADC: added mode ADC_CTRL_TYPE_CURRENT_REV_BUTTON_BRAKE_ADC.
 * APP ADC: changed behavior when throttle and brake ADC channels are used simultaneously for smoother combination.
@@ -55,7 +55,7 @@
 * Moved sampling buffers to CCM to free some RAM.
 * Added hardware info terminal command.
 * NRF init SPI check fix.
-* Sampled data is now transmitted in floating point with scaling done at the VESC. This avoids hard-coded scaling in VESC Tool.
+* Sampled data is now transmitted in floating point with scaling done at the ESC. This avoids hard-coded scaling in ESC Tool.
 
 === FW 3.18 ===
 * NRF init SPI check.
@@ -135,7 +135,7 @@
 
 === FW 3.4 ===
 * HW version built into firmware.
- - Allows VESC Tool to only list firmwares compatible with the hardware.
+ - Allows ESC Tool to only list firmwares compatible with the hardware.
 
 === FW 3.2 ===
 * hw_60 support.
