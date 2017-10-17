@@ -64,18 +64,20 @@ typedef struct
     uint8_t motor_phase_classification_c2;
     uint8_t throttle_mode_c4;
     uint8_t max_current_adjust_c5;
+    uint8_t pas_tuning_c14;
 
 
 } lcd_rx_data;
 
 typedef enum {
-	EMPTY_BOX,
-	BORDER_FLASHING,
-	ANIMATED_CHARGING,
-	EMPTY,
-	B1_BAR,
-	B2_BARS,
-	B4_BARS
+	EMPTY_BOX = 0,
+	BORDER_FLASHING = 1,
+	ANIMATED_CHARGING = 2,
+	EMPTY = 3,
+	B1_BAR = 4,
+	B2_BARS = 8,
+	B3_BARS = 12,
+	B4_BARS = 16
 } battery_level;
 
 typedef struct {
@@ -93,5 +95,8 @@ void s_lcd3_start(void);
 void s_lcd3_stop(void);
 
 void s_lcd3_work(void);
+const volatile lcd_rx_data* s_lcd3_get_data(void);
+void lcd_set_data(uint16_t power, uint16_t wheel_rotation_period, uint8_t error_display,
+				  battery_level battery, bool anim_throttle, bool cruise, bool assist);
 
 #endif

@@ -312,6 +312,36 @@ static THD_FUNCTION(ev_thread, arg) {
 		}
 
 
+		// display output
+		battery_level battery = BORDER_FLASHING;
+
+		if(mcconf->l_min_vin < mcconf->l_max_vin) {
+			float bat_level = (GET_INPUT_VOLTAGE() - mcconf->l_min_vin) / (mcconf->l_max_vin - mcconf->l_min_vin);
+
+			if(bat_level >= 0.7) {
+				battery = B4_BARS;
+			} else if(bat_level >= 0.5) {
+				battery = B3_BARS;
+			} else if(bat_level >= 0.4) {
+				battery = B2_BARS;
+			} else if(bat_level >= 0.3) {
+				battery = B1_BAR;
+			} else if(bat_level < 0) {
+				battery = BORDER_FLASHING;
+			} else {
+				battery = EMPTY_BOX;
+			}
+		}
+
+		uint16_t wheel_rot_period = 0;
+
+		//lcd_set_data(GET_INPUT_VOLTAGE() * mc_interface_get_tot_current_in_filtered(), 500, 0, pwr > 0.01, false, false);
+		lcd_set_data(GET_INPUT_VOLTAGE() * mc_interface_get_tot_current_in_filtered(),
+					 wheel_rot_period, 0, battery, pwr > 0.01, false, false);
+
+
+
+
 
 		// check safe start, if the output has not been zero for long enough
 		if (ms_without_power < MIN_MS_WITHOUT_POWER ) {
@@ -361,5 +391,7 @@ static THD_FUNCTION(ev_thread, arg) {
 				mc_interface_set_current(current);
 			}
 		}
+
+
 	}
 }
