@@ -29,9 +29,9 @@ for pedaling etc).
  - Support for Analog Throttle + Braking
  - Support for PAS Sensor (on PPM connector)
  - Support for s-LCD3 Display
-  - Display Speed, Wattage, Battery
-  - "Gear" Selection (Mode 0-5)
-  - Power Assisted Push Mode
+   - Display Speed, Wattage, Battery
+   - "Gear" Selection (Mode 0-5)
+   - Power Assisted Push Mode
  - Support for config via my esc_tool (see https://github.com/derlucas/esc_tool)
 
 
@@ -70,13 +70,13 @@ You can then select the EV application (it is enabled by default by now) and mak
  - Use throttle brake: if enabled, the ADC2 pin is used as brake. This only makes sense if you are not using a motor with freewheel.
  - Use display Vmax: if enabled, the \*ESC will use the Speed limit configured into the Display.
  - Power Mode 1-5:
-   Set the wanted percentage of current (relative to max motor current) for each "gear"(mode).
+    Set the wanted percentage of current (relative to max motor  current) for each "gear"(mode).
  - Push Assist mode 6: configure percentage of current and max speed for the power assisted push function. You have to enter eRPM. (TODO: fill in a formula wheelsize+km/h+gearratio+motorpoles = eRPM)
 - Mapping
- - the usual analog input mapping like in the ADC app
+  - the usual analog input mapping like in the ADC app
 - Throttle curve
- - the usual throttle curve like in the other apps.
-   Be aware: the curve also affects the current levels in the Power Modes 1-5
+  - the usual throttle curve like in the other apps.
+    Be aware: the curve also affects the current levels in the Power Modes 1-5
 
 ##### Wiring / Connections:
 
@@ -84,8 +84,8 @@ You can then select the EV application (it is enabled by default by now) and mak
 - Braking (analog): GND - ADC2 - 3.3V
 - PAS Sensor: GND - PPM (3pin header) - 3.3V + Pullup between Signal and 3.3V
 - Display (s-LCD3):
- - Red: +48V
- - Blue: Control (use with AntiSpark Switch to turn on \*ESC)
- - Black: GND
- - Green (Data1): RX
- - Yellow (Data2): TX
+  - Red: +48V
+  - Blue: Control (use with AntiSpark Switch to turn on \*ESC)
+  - Black: GND
+  - Green (Data1): RX
+  - Yellow (Data2): TX
