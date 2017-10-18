@@ -619,7 +619,7 @@ void commands_process_packet(unsigned char *data, unsigned int len) {
 		appconf.app_ev_conf.mode_4_current = buffer_get_float32_auto(data, &ind);
 		appconf.app_ev_conf.mode_5_current = buffer_get_float32_auto(data, &ind);
 		appconf.app_ev_conf.mode_6_current = buffer_get_float32_auto(data, &ind);
-		appconf.app_ev_conf.mode_6_speed = data[ind++];
+		appconf.app_ev_conf.mode_6_speed = buffer_get_uint32(data, &ind);
 
 
 
@@ -1058,7 +1058,7 @@ void commands_send_appconf(COMM_PACKET_ID packet_id, app_configuration *appconf)
 	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.mode_4_current, &ind);
 	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.mode_5_current, &ind);
 	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.mode_6_current, &ind);
-	send_buffer[ind++] = appconf->app_ev_conf.mode_6_speed;
+	buffer_append_uint32(send_buffer, appconf->app_ev_conf.mode_6_speed, &ind);
 
 	commands_send_packet(send_buffer, ind);
 }

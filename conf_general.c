@@ -180,7 +180,7 @@ void conf_general_get_default_app_configuration(app_configuration *conf) {
 	conf->app_ev_conf.mode_4_current = 0.75;
 	conf->app_ev_conf.mode_5_current = 1.0;
 	conf->app_ev_conf.mode_6_current = 0.1;
-	conf->app_ev_conf.mode_6_speed = 7;
+	conf->app_ev_conf.mode_6_speed = 2000;
 
 }
 

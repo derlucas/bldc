@@ -399,6 +399,10 @@ void mc_interface_set_pid_pos(float pos) {
 	}
 }
 
+void mc_interface_set_current_limit_app(float current) {
+	m_conf.lu_current_max = current;
+}
+
 void mc_interface_set_current(float current) {
 	if (mc_interface_try_input()) {
 		return;
@@ -1296,7 +1300,7 @@ void mc_interface_adc_inj_int_handler(void) {
  * Update the override limits for a configuration based on MOSFET temperature etc.
  *
  * @param conf
- * The configaration to update.
+ * The configuration to update.
  */
 static void update_override_limits(volatile mc_configuration *conf) {
 	const float v_in = GET_INPUT_VOLTAGE();
@@ -1359,6 +1363,7 @@ static void update_override_limits(volatile mc_configuration *conf) {
 		}
 	}
 
+
 	// RPM max
 	float lo_max_rpm = 0.0;
 	const float rpm_pos_cut_start = conf->l_max_erpm * conf->l_erpm_start;
@@ -1389,6 +1394,10 @@ static void update_override_limits(volatile mc_configuration *conf) {
 	lo_max = utils_min_abs(lo_max, lo_max_rpm);
 	lo_max = utils_min_abs(lo_max, lo_min_rpm);
 
+	if(conf->lu_current_max > 0) {
+		lo_max = utils_min_abs(lo_max, conf->lu_current_max);
+	}
+
 	if (lo_max < conf->cc_min_current) {
 		lo_max = conf->cc_min_current;
 	}
@@ -1400,6 +1409,8 @@ static void update_override_limits(volatile mc_configuration *conf) {
 	conf->lo_current_max = lo_max;
 	conf->lo_current_min = lo_min;
 
+
+
 	// Battery cutoff
 	float lo_in_max_batt = 0.0;
 	if (v_in > conf->l_battery_cut_start) {
@@ -1408,7 +1419,7 @@ static void update_override_limits(volatile mc_configuration *conf) {
 		lo_in_max_batt = 0.0;
 	} else {
 		lo_in_max_batt = utils_map(v_in, conf->l_battery_cut_start,
-				conf->l_battery_cut_end, conf->l_in_current_max, 0.0);
+		conf->l_battery_cut_end, conf->l_in_current_max, 0.0);
 	}
 
 	// Wattage limits

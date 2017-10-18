@@ -133,6 +133,9 @@ void s_lcd3_start() {
 	lcd_data_tx.show_assist = false;
 	lcd_data_tx.show_cruise_control = false;
 
+	lcd_data_rx.assist_level = 1;
+	lcd_data_rx.headlight = false;
+
 
 	serial_rx_read_pos = 0;
 	serial_rx_write_pos = 0;
@@ -270,7 +273,7 @@ void process_byte(uint8_t rx_data) {
 static THD_FUNCTION(packet_process_thread, arg) {
 	(void)arg;
 
-	chRegSetThreadName("s-lcd3 uart process");
+	chRegSetThreadName("s-lcd3 ");
 
 	process_tp = chThdGetSelfX();
 

@@ -60,6 +60,10 @@ float get_mode_value(void);
 void app_ev_configure(ev_config *conf) {
 	config = *conf;
 	ms_without_power = 0.0;
+
+	if(!config.use_pas) {
+		runmode = 1; // PAS 1
+	}
 }
 
 void app_ev_start(bool use_display) {
@@ -208,6 +212,16 @@ static THD_FUNCTION(ev_thread, arg) {
 		decoded_level2 = brake;
 
 
+		if(config.use_display) {
+			// read LCD data + config
+			// we could use the wheel size data + p1 value instead of wheel_factor.
+			// But setting via computer is simpler
+
+			const volatile lcd_rx_data *lcd_data = s_lcd3_get_data();
+			//TODO: add validation / timeout for this data
+			runmode = lcd_data->assist_level;
+
+		}
 
 
 		bool is_pedaling = false;
@@ -231,7 +245,7 @@ static THD_FUNCTION(ev_thread, arg) {
 			// Apply PAS ramping (TODO: make this configurable)
 			static systime_t last_time_pas = 0;
 			static float pwr_ramp_pas = 0.0;
-			const float ramp_time_pas = fabsf(pwr) > fabsf(pwr_ramp_pas) ? 5 : 5;
+			const float ramp_time_pas = fabsf(pwr) > fabsf(pwr_ramp_pas) ? 5 : 1;
 
 			if (ramp_time_pas > 0.01) {
 				const float ramp_step_pas = (float)ST2MS(chVTTimeElapsedSinceX(last_time_pas)) / (ramp_time_pas * 1000.0);
@@ -369,32 +383,16 @@ static THD_FUNCTION(ev_thread, arg) {
 
 		// Reset timeout
 		timeout_reset();
-		bool current_mode = true;
-		//bool speed_mode = false;
 
 
-/*
-		// Filter RPM to avoid glitches
-		static float filter_buffer[RPM_FILTER_SAMPLES];
-		static int filter_ptr = 0;
-		filter_buffer[filter_ptr++] = mc_interface_get_rpm();
-		if (filter_ptr >= RPM_FILTER_SAMPLES) {
-			filter_ptr = 0;
-		}
+		if(runmode == 6) {
+			mc_interface_set_current_limit_app(config.mode_6_current * mcconf->l_current_max);
 
-		float rpm_filtered = 0.0;
-		for (int i = 0;i < RPM_FILTER_SAMPLES;i++) {
-			rpm_filtered += filter_buffer[i];
-		}
-		rpm_filtered /= RPM_FILTER_SAMPLES;
+			mc_interface_set_pid_speed(config.mode_6_speed);
 
-		 //fabsf(pwr) < 0.001
-		//mc_interface_set_pid_speed(pid_rpm);
-*/
+		} else {
+			mc_interface_set_current_limit_app(0);
 
-
-
-		if (current_mode) {
 			if (current_mode_brake) {
 				mc_interface_set_brake_current(current);
 			} else {
