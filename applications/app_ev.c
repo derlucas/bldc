@@ -53,11 +53,8 @@ static volatile bool is_running = false;
 static volatile bool throttle_released_after_brake = true;
 static volatile int runmode = 1;
 
-
+// prototypes
 float get_mode_value(void);
-
-
-
 
 
 void app_ev_configure(ev_config *conf) {
@@ -65,12 +62,14 @@ void app_ev_configure(ev_config *conf) {
 	ms_without_power = 0.0;
 }
 
-void app_ev_start() {
+void app_ev_start(bool use_display) {
 	stop_now = false;
 
 	chThdCreateStatic(ev_thread_wa, sizeof(ev_thread_wa), NORMALPRIO, ev_thread, NULL);
 
-	s_lcd3_start();
+	if(use_display) {
+		s_lcd3_start();
+	}
 }
 
 void app_ev_stop(void) {
@@ -85,8 +84,6 @@ void app_ev_stop(void) {
 	while (is_running) {
 		chThdSleepMilliseconds(1);
 	}
-
-
 }
 
 float app_ev_get_decoded_level1(void) {
@@ -312,33 +309,46 @@ static THD_FUNCTION(ev_thread, arg) {
 		}
 
 
-		// display output
-		battery_level battery = BORDER_FLASHING;
+		if(config.use_display) {
+			// display output
+			battery_level battery = BORDER_FLASHING;
 
-		if(mcconf->l_min_vin < mcconf->l_max_vin) {
-			float bat_level = (GET_INPUT_VOLTAGE() - mcconf->l_min_vin) / (mcconf->l_max_vin - mcconf->l_min_vin);
+			if(mcconf->l_min_vin < mcconf->l_max_vin) {
+				float bat_level = (GET_INPUT_VOLTAGE() - mcconf->l_min_vin) / (mcconf->l_max_vin - mcconf->l_min_vin);
 
-			if(bat_level >= 0.7) {
-				battery = B4_BARS;
-			} else if(bat_level >= 0.5) {
-				battery = B3_BARS;
-			} else if(bat_level >= 0.4) {
-				battery = B2_BARS;
-			} else if(bat_level >= 0.3) {
-				battery = B1_BAR;
-			} else if(bat_level < 0) {
-				battery = BORDER_FLASHING;
-			} else {
-				battery = EMPTY_BOX;
+				if(bat_level >= 0.7) {
+					battery = B4_BARS;
+				} else if(bat_level >= 0.5) {
+					battery = B3_BARS;
+				} else if(bat_level >= 0.4) {
+					battery = B2_BARS;
+				} else if(bat_level >= 0.3) {
+					battery = B1_BAR;
+				} else if(bat_level < 0) {
+					battery = BORDER_FLASHING;
+				} else {
+					battery = EMPTY_BOX;
+				}
 			}
+
+			uint16_t wheel_rot_period = 0xffff;
+
+			if(config.use_pulse) {
+				// use SWDio pin as input for pulse count
+				//TODO
+
+			} else {
+				// use ERPM + config.wheel_factor
+				float erpm = fabs(mc_interface_get_rpm());
+				if(erpm > 100) {
+					wheel_rot_period = (1 / (erpm / config.wheel_factor)) * 1000;
+				}
+			}
+
+			//lcd_set_data(GET_INPUT_VOLTAGE() * mc_interface_get_tot_current_in_filtered(), 500, 0, pwr > 0.01, false, false);
+			lcd_set_data(GET_INPUT_VOLTAGE() * mc_interface_get_tot_current_in_filtered(),
+						 wheel_rot_period, 0, battery, pwr > 0.01, false, false);
 		}
-
-		uint16_t wheel_rot_period = 0;
-
-		//lcd_set_data(GET_INPUT_VOLTAGE() * mc_interface_get_tot_current_in_filtered(), 500, 0, pwr > 0.01, false, false);
-		lcd_set_data(GET_INPUT_VOLTAGE() * mc_interface_get_tot_current_in_filtered(),
-					 wheel_rot_period, 0, battery, pwr > 0.01, false, false);
-
 
 
 

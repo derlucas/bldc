@@ -162,11 +162,11 @@ void conf_general_get_default_app_configuration(app_configuration *conf) {
 	conf->app_ev_conf.voltage2_end = APPCONF_EV_VOLTAGE2_END;
 	conf->app_ev_conf.use_filter = true;
 	conf->app_ev_conf.update_rate_hz = APPCONF_EV_UPDATE_RATE_HZ;
-	conf->app_ev_conf.wheel_perimeter = 210;
-	conf->app_ev_conf.use_pulse = true;
+	conf->app_ev_conf.wheel_factor = 2659.5;
+	conf->app_ev_conf.use_pulse = false;
 	conf->app_ev_conf.ramp_time_pos = APPCONF_EV_RAMP_TIME_POS;
 	conf->app_ev_conf.ramp_time_neg = APPCONF_EV_RAMP_TIME_NEG;
-	conf->app_ev_conf.use_display = false;
+	conf->app_ev_conf.use_display = true;
 	conf->app_ev_conf.use_display_vmax = false;
 	conf->app_ev_conf.use_pas = true;
 	conf->app_ev_conf.use_throttle = true;

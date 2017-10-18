@@ -63,7 +63,7 @@ void app_set_configuration(app_configuration *conf) {
 		app_adc_start(true);
 		break;
 	case APP_EV:
-		app_ev_start();
+		app_ev_start(appconf.app_ev_conf.use_display);
 		break;
 	case APP_UART:
 		hw_stop_i2c();

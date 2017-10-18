@@ -600,7 +600,7 @@ void commands_process_packet(unsigned char *data, unsigned int len) {
 		appconf.app_ev_conf.voltage2_end = buffer_get_float32_auto(data, &ind);
 		appconf.app_ev_conf.use_filter = data[ind++];
 		appconf.app_ev_conf.update_rate_hz = buffer_get_uint16(data, &ind);
-		appconf.app_ev_conf.wheel_perimeter = buffer_get_uint16(data, &ind);
+		appconf.app_ev_conf.wheel_factor = buffer_get_float32_auto(data, &ind);
 		appconf.app_ev_conf.use_pulse = data[ind++];
 		appconf.app_ev_conf.ramp_time_pos = buffer_get_float32_auto(data, &ind);
 		appconf.app_ev_conf.ramp_time_neg = buffer_get_float32_auto(data, &ind);
@@ -1039,7 +1039,7 @@ void commands_send_appconf(COMM_PACKET_ID packet_id, app_configuration *appconf)
 	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.voltage2_end, &ind);
 	send_buffer[ind++] = appconf->app_ev_conf.use_filter;
 	buffer_append_uint16(send_buffer, appconf->app_ev_conf.update_rate_hz, &ind);
-	buffer_append_uint16(send_buffer, appconf->app_ev_conf.wheel_perimeter, &ind);
+	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.wheel_factor, &ind);
 	send_buffer[ind++] = appconf->app_ev_conf.use_pulse;
 	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.ramp_time_pos, &ind);
 	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.ramp_time_neg, &ind);

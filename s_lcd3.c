@@ -42,6 +42,7 @@ static uint8_t serial_rx_buffer[SERIAL_RX_BUFFER_SIZE];
 static int serial_rx_read_pos = 0;
 static int serial_rx_write_pos = 0;
 static volatile bool is_running = false;
+static volatile bool stop_now = true;
 
 static volatile lcd_rx_data lcd_data_rx;
 static volatile lcd_tx_data lcd_data_tx;
@@ -121,14 +122,13 @@ static UARTConfig uart_cfg = {
 
 void s_lcd3_start() {
 
-	//const volatile mc_configuration *mcconf = mc_interface_get_configuration();
+	stop_now = false;
 
-	//lcd_data_tx.power = GET_INPUT_VOLTAGE() * mc_interface_get_tot_current_in_filtered();
 	lcd_data_tx.power = 0;
 	lcd_data_tx.battery_lvl = BORDER_FLASHING;
 	lcd_data_tx.error_info  = 0;
 	lcd_data_tx.motor_temperature = 23;
-	lcd_data_tx.wheel_rotation_period = 0;
+	lcd_data_tx.wheel_rotation_period = 0xffff;
 	lcd_data_tx.show_animated_circle = false;
 	lcd_data_tx.show_assist = false;
 	lcd_data_tx.show_cruise_control = false;
@@ -137,11 +137,9 @@ void s_lcd3_start() {
 	serial_rx_read_pos = 0;
 	serial_rx_write_pos = 0;
 
-	if (!is_running) {
-		chThdCreateStatic(packet_process_thread_wa, sizeof(packet_process_thread_wa),
-				NORMALPRIO, packet_process_thread, NULL);
-		is_running = true;
-	}
+
+	chThdCreateStatic(packet_process_thread_wa, sizeof(packet_process_thread_wa),
+			NORMALPRIO, packet_process_thread, NULL);
 
 	uartStart(&HW_UART_DEV, &uart_cfg);
 	palSetPadMode(HW_UART_TX_PORT, HW_UART_TX_PIN, PAL_MODE_ALTERNATE(HW_UART_GPIO_AF) |
@@ -153,6 +151,12 @@ void s_lcd3_start() {
 }
 
 void s_lcd3_stop() {
+	stop_now = true;
+
+	if (is_running) {
+		chEvtSignalI(process_tp, (eventmask_t) 1);
+	}
+
 	uartStop(&HW_UART_DEV);
 	palSetPadMode(HW_UART_TX_PORT, HW_UART_TX_PIN, PAL_MODE_INPUT_PULLUP);
 	palSetPadMode(HW_UART_RX_PORT, HW_UART_RX_PIN, PAL_MODE_INPUT_PULLUP);
@@ -190,11 +194,12 @@ void send_lcd_data() {
 	tx_buffer[11] = 0x00;
 
 	// CRC
-	//tx_buffer[6] = tx_buffer[0] ^ tx_buffer[1] ^ tx_buffer[2] ^ tx_buffer[3] ^ tx_buffer[4] ^ tx_buffer[5] ^ tx_buffer[7] ^ tx_buffer[8] ^ tx_buffer[9];
-	tx_buffer[6] = tx_buffer[1] ^ 0x24 ^ tx_buffer[3] ^ tx_buffer[4] ^ tx_buffer[5] ^ tx_buffer[7] ^ tx_buffer[8] ^ tx_buffer[9];
+	tx_buffer[6] = tx_buffer[1] ^ tx_buffer[2] ^ tx_buffer[3] ^ tx_buffer[4] ^ tx_buffer[5] ^ tx_buffer[7] ^ tx_buffer[8] ^ tx_buffer[9];
+
 
 	commands_printf("send: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x", tx_buffer[0], tx_buffer[1], tx_buffer[2], tx_buffer[3], tx_buffer[4],
 																			   tx_buffer[5], tx_buffer[6], tx_buffer[7], tx_buffer[8], tx_buffer[9]);
+
 
 	// Wait for the previous transmission to finish.
 	while (HW_UART_DEV.txstate == UART_TX_ACTIVE) {
@@ -238,7 +243,7 @@ void process_byte(uint8_t rx_data) {
 
 			lcd_data_rx.throttle_mode_c4 = (rx_buffer[8] & 0xE0) >> 5;
 
-
+			/*
 			commands_printf("p5: %d, light: %d  assist: %d, maxspd: %d, wheelsize: %d, ppr_p2: %d, pasmode_p3: %d, "
 					"throttleneedpas_p4: %d, motorchar_p1: %d, passensmode_c1: %d, phase_c2: %d, maxcurre_c5: %d, thromo_c4: %d, "
 					"pastune_c14: %d ", lcd_data_rx.power_monitoring_p5,
@@ -247,7 +252,11 @@ void process_byte(uint8_t rx_data) {
 										  lcd_data_rx.pas_mode_p3, lcd_data_rx.throttle_needs_pas_p4, lcd_data_rx.motor_characteristic_p1,
 										  lcd_data_rx.pas_sensor_mode_c1, lcd_data_rx.motor_phase_classification_c2, lcd_data_rx.max_current_adjust_c5,
 										  lcd_data_rx.throttle_mode_c4, lcd_data_rx.pas_tuning_c14);
+			*/
+
+
 			send_lcd_data();
+
 
 		}
 
@@ -265,8 +274,15 @@ static THD_FUNCTION(packet_process_thread, arg) {
 
 	process_tp = chThdGetSelfX();
 
+	is_running = true;
+
 	for(;;) {
 		chEvtWaitAny((eventmask_t) 1);
+
+		if (stop_now) {
+			is_running = false;
+			return;
+		}
 
 		while (serial_rx_read_pos != serial_rx_write_pos) {
 

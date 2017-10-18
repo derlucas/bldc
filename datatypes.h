@@ -339,7 +339,7 @@ typedef struct {
 	float ramp_time_pos;
 	float ramp_time_neg;
 	uint32_t update_rate_hz;
-	uint16_t wheel_perimeter;
+	float wheel_factor;
 	bool use_pulse;
 	bool use_display;
 	bool use_display_vmax;
