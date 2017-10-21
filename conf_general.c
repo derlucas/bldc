@@ -163,12 +163,14 @@ void conf_general_get_default_app_configuration(app_configuration *conf) {
 	conf->app_ev_conf.use_filter = true;
 	conf->app_ev_conf.update_rate_hz = APPCONF_EV_UPDATE_RATE_HZ;
 	conf->app_ev_conf.wheel_factor = 2659.5;
+	conf->app_ev_conf.wheel_diameter = 71;
 	conf->app_ev_conf.use_pulse = false;
 	conf->app_ev_conf.ramp_time_pos = APPCONF_EV_RAMP_TIME_POS;
 	conf->app_ev_conf.ramp_time_neg = APPCONF_EV_RAMP_TIME_NEG;
 	conf->app_ev_conf.use_display = true;
 	conf->app_ev_conf.use_display_vmax = false;
 	conf->app_ev_conf.use_pas = true;
+	conf->app_ev_conf.use_throttle_wo_pas = false;
 	conf->app_ev_conf.use_throttle = true;
 	conf->app_ev_conf.use_throttle_brake = false;
 	conf->app_ev_conf.throttle_exp = APPCONF_EV_THROTTLE_EXP;
@@ -180,7 +182,13 @@ void conf_general_get_default_app_configuration(app_configuration *conf) {
 	conf->app_ev_conf.mode_4_current = 0.75;
 	conf->app_ev_conf.mode_5_current = 1.0;
 	conf->app_ev_conf.mode_6_current = 0.1;
-	conf->app_ev_conf.mode_6_speed = 2000;
+	conf->app_ev_conf.mode_1_speed = 8500;
+	conf->app_ev_conf.mode_2_speed = 8500;
+	conf->app_ev_conf.mode_3_speed = 8500;
+	conf->app_ev_conf.mode_4_speed = 8500;
+	conf->app_ev_conf.mode_5_speed = 8500;
+	conf->app_ev_conf.mode_6_speed = 2300;
+
 
 }
 

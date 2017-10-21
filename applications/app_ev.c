@@ -66,13 +66,20 @@ void app_ev_configure(ev_config *conf) {
 	}
 }
 
-void app_ev_start(bool use_display) {
+void app_ev_start(bool use_display, bool use_swdport) {
 	stop_now = false;
 
 	chThdCreateStatic(ev_thread_wa, sizeof(ev_thread_wa), NORMALPRIO, ev_thread, NULL);
 
 	if(use_display) {
 		s_lcd3_start();
+	}
+
+	if(use_swdport) {
+		// configure SWDIO and SWDCLK pins as Input. Note: Debugging will not be possible
+		// until this is configured back to AF(0). Use ESC Terminal "swdio" command to restore
+		palSetPadMode(HW_SWD_PORT_IO, HW_SWD_PIN_IO, PAL_MODE_INPUT_PULLUP);
+		palSetPadMode(HW_SWD_PORT_CLK, HW_SWD_PIN_CLK, PAL_MODE_INPUT_PULLUP);
 	}
 }
 
@@ -88,6 +95,10 @@ void app_ev_stop(void) {
 	while (is_running) {
 		chThdSleepMilliseconds(1);
 	}
+
+	// reset limits
+	mc_interface_set_current_limit_app(0);
+	mc_interface_set_rpm_limit_app(0xffffff);
 }
 
 float app_ev_get_decoded_level1(void) {
@@ -138,9 +149,13 @@ static THD_FUNCTION(ev_thread, arg) {
 	// Set servo pin as an input with pullup
 	palSetPadMode(HW_ICU_GPIO, HW_ICU_PIN, PAL_MODE_INPUT_PULLUP);
 
+
+
 	servodec_set_pulse_options(10, 500, false);
 	servodec_init(0);
 	is_running = true;
+
+	uint8_t divider = 0;
 
 	for(;;) {
 		// Sleep for a time according to the specified rate
@@ -160,6 +175,12 @@ static THD_FUNCTION(ev_thread, arg) {
 		// For safe start when fault codes occur
 		if (mc_interface_get_fault() != FAULT_CODE_NONE) {
 			ms_without_power = 0;
+		}
+
+		if(divider++ > 100 && config.use_pulse) {
+			bool padpad = palReadPad(GPIOA, 13);
+			commands_printf("SWDIO: %d", padpad ? 1 : 0);
+			divider = 0;
 		}
 
 
@@ -257,7 +278,7 @@ static THD_FUNCTION(ev_thread, arg) {
 
 		if(config.use_throttle) {
 			if(config.use_pas) {
-				if(is_pedaling) {
+				if(is_pedaling | config.use_throttle_wo_pas) {
 					// throttle allows giving more power than pas mode would normally be
 					pwr = utils_max_abs(pwr, throttle);
 				}
@@ -392,6 +413,8 @@ static THD_FUNCTION(ev_thread, arg) {
 
 		} else {
 			mc_interface_set_current_limit_app(0);
+			mc_interface_set_rpm_limit_app(3000);
+
 
 			if (current_mode_brake) {
 				mc_interface_set_brake_current(current);

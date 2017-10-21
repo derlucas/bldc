@@ -403,6 +403,10 @@ void mc_interface_set_current_limit_app(float current) {
 	m_conf.lu_current_max = current;
 }
 
+void mc_interface_set_rpm_limit_app(float erpm) {
+	m_conf.lu_erpm_max = erpm;
+}
+
 void mc_interface_set_current(float current) {
 	if (mc_interface_try_input()) {
 		return;
@@ -1366,8 +1370,9 @@ static void update_override_limits(volatile mc_configuration *conf) {
 
 	// RPM max
 	float lo_max_rpm = 0.0;
-	const float rpm_pos_cut_start = conf->l_max_erpm * conf->l_erpm_start;
-	const float rpm_pos_cut_end = conf->l_max_erpm;
+	const float rpm_limit_max = utils_min_abs(conf->l_max_erpm, conf->lu_erpm_max);
+	const float rpm_pos_cut_start = rpm_limit_max * conf->l_erpm_start;
+	const float rpm_pos_cut_end = rpm_limit_max;
 	if (rpm_now < rpm_pos_cut_start) {
 		lo_max_rpm = conf->l_current_max;
 	} else if (rpm_now > rpm_pos_cut_end) {
@@ -1378,8 +1383,9 @@ static void update_override_limits(volatile mc_configuration *conf) {
 
 	// RPM min
 	float lo_min_rpm = 0.0;
-	const float rpm_neg_cut_start = conf->l_min_erpm * conf->l_erpm_start;
-	const float rpm_neg_cut_end = conf->l_min_erpm;
+	const float rpm_limit_min = utils_max_abs(conf->l_min_erpm, -1 * conf->lu_erpm_max);
+	const float rpm_neg_cut_start = rpm_limit_min * conf->l_erpm_start;
+	const float rpm_neg_cut_end = rpm_limit_min;
 	if (rpm_now > rpm_neg_cut_start) {
 		lo_min_rpm = conf->l_current_max;
 	} else if (rpm_now < rpm_neg_cut_end) {
@@ -1394,9 +1400,11 @@ static void update_override_limits(volatile mc_configuration *conf) {
 	lo_max = utils_min_abs(lo_max, lo_max_rpm);
 	lo_max = utils_min_abs(lo_max, lo_min_rpm);
 
+	// app level limits
 	if(conf->lu_current_max > 0) {
 		lo_max = utils_min_abs(lo_max, conf->lu_current_max);
 	}
+
 
 	if (lo_max < conf->cc_min_current) {
 		lo_max = conf->cc_min_current;

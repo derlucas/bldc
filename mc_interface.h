@@ -39,6 +39,7 @@ void mc_interface_set_duty_noramp(float dutyCycle);
 void mc_interface_set_pid_speed(float rpm);
 void mc_interface_set_pid_pos(float pos);
 void mc_interface_set_current_limit_app(float current);
+void mc_interface_set_rpm_limit_app(float erpm);
 void mc_interface_set_current(float current);
 void mc_interface_set_brake_current(float current);
 void mc_interface_set_current_rel(float val);

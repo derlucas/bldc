@@ -601,12 +601,14 @@ void commands_process_packet(unsigned char *data, unsigned int len) {
 		appconf.app_ev_conf.use_filter = data[ind++];
 		appconf.app_ev_conf.update_rate_hz = buffer_get_uint16(data, &ind);
 		appconf.app_ev_conf.wheel_factor = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.wheel_diameter = buffer_get_float32_auto(data, &ind);
 		appconf.app_ev_conf.use_pulse = data[ind++];
 		appconf.app_ev_conf.ramp_time_pos = buffer_get_float32_auto(data, &ind);
 		appconf.app_ev_conf.ramp_time_neg = buffer_get_float32_auto(data, &ind);
 		appconf.app_ev_conf.use_display = data[ind++];
 		appconf.app_ev_conf.use_display_vmax = data[ind++];
 		appconf.app_ev_conf.use_pas = data[ind++];
+		appconf.app_ev_conf.use_throttle_wo_pas = data[ind++];
 		appconf.app_ev_conf.use_throttle = data[ind++];
 		appconf.app_ev_conf.use_throttle_brake = data[ind++];
 		appconf.app_ev_conf.throttle_exp = buffer_get_float32_auto(data, &ind);
@@ -619,6 +621,11 @@ void commands_process_packet(unsigned char *data, unsigned int len) {
 		appconf.app_ev_conf.mode_4_current = buffer_get_float32_auto(data, &ind);
 		appconf.app_ev_conf.mode_5_current = buffer_get_float32_auto(data, &ind);
 		appconf.app_ev_conf.mode_6_current = buffer_get_float32_auto(data, &ind);
+		appconf.app_ev_conf.mode_1_speed = buffer_get_uint32(data, &ind);
+		appconf.app_ev_conf.mode_2_speed = buffer_get_uint32(data, &ind);
+		appconf.app_ev_conf.mode_3_speed = buffer_get_uint32(data, &ind);
+		appconf.app_ev_conf.mode_4_speed = buffer_get_uint32(data, &ind);
+		appconf.app_ev_conf.mode_5_speed = buffer_get_uint32(data, &ind);
 		appconf.app_ev_conf.mode_6_speed = buffer_get_uint32(data, &ind);
 
 
@@ -1046,6 +1053,7 @@ void commands_send_appconf(COMM_PACKET_ID packet_id, app_configuration *appconf)
 	send_buffer[ind++] = appconf->app_ev_conf.use_display;
 	send_buffer[ind++] = appconf->app_ev_conf.use_display_vmax;
 	send_buffer[ind++] = appconf->app_ev_conf.use_pas;
+	send_buffer[ind++] = appconf->app_ev_conf.use_throttle_wo_pas;
 	send_buffer[ind++] = appconf->app_ev_conf.use_throttle;
 	send_buffer[ind++] = appconf->app_ev_conf.use_throttle_brake;
 	buffer_append_float32_auto(send_buffer, appconf->app_ev_conf.throttle_exp, &ind);

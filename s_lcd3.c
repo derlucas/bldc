@@ -33,8 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PACKET_MAX_PL_LEN				13
 
 // Threads
-static THD_FUNCTION(packet_process_thread, arg);
-static THD_WORKING_AREA(packet_process_thread_wa, 4096);
+static THD_FUNCTION(lcd_process_thread, arg);
+static THD_WORKING_AREA(lcd_process_thread_wa, 4096);
 static thread_t *process_tp = 0;
 
 // Variables
@@ -139,10 +139,11 @@ void s_lcd3_start() {
 
 	serial_rx_read_pos = 0;
 	serial_rx_write_pos = 0;
+	rx_data_ptr = 0;
 
 
-	chThdCreateStatic(packet_process_thread_wa, sizeof(packet_process_thread_wa),
-			NORMALPRIO, packet_process_thread, NULL);
+	chThdCreateStatic(lcd_process_thread_wa, sizeof(lcd_process_thread_wa),
+			NORMALPRIO, lcd_process_thread, NULL);
 
 	uartStart(&HW_UART_DEV, &uart_cfg);
 	palSetPadMode(HW_UART_TX_PORT, HW_UART_TX_PIN, PAL_MODE_ALTERNATE(HW_UART_GPIO_AF) |
@@ -150,6 +151,7 @@ void s_lcd3_start() {
 	palSetPadMode(HW_UART_RX_PORT, HW_UART_RX_PIN, PAL_MODE_ALTERNATE(HW_UART_GPIO_AF) |
 			PAL_STM32_OSPEED_HIGHEST | PAL_STM32_PUDR_PULLUP);
 
+	commands_printf("lcd started");
 
 }
 
@@ -163,6 +165,11 @@ void s_lcd3_stop() {
 	uartStop(&HW_UART_DEV);
 	palSetPadMode(HW_UART_TX_PORT, HW_UART_TX_PIN, PAL_MODE_INPUT_PULLUP);
 	palSetPadMode(HW_UART_RX_PORT, HW_UART_RX_PIN, PAL_MODE_INPUT_PULLUP);
+
+	while (is_running) {
+		chThdSleepMilliseconds(1);
+	}
+	commands_printf("lcd stopped");
 }
 
 
@@ -199,10 +206,10 @@ void send_lcd_data() {
 	// CRC
 	tx_buffer[6] = tx_buffer[1] ^ tx_buffer[2] ^ tx_buffer[3] ^ tx_buffer[4] ^ tx_buffer[5] ^ tx_buffer[7] ^ tx_buffer[8] ^ tx_buffer[9];
 
-
+	/*
 	commands_printf("send: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x", tx_buffer[0], tx_buffer[1], tx_buffer[2], tx_buffer[3], tx_buffer[4],
 																			   tx_buffer[5], tx_buffer[6], tx_buffer[7], tx_buffer[8], tx_buffer[9]);
-
+ 	*/
 
 	// Wait for the previous transmission to finish.
 	while (HW_UART_DEV.txstate == UART_TX_ACTIVE) {
@@ -216,8 +223,9 @@ void send_lcd_data() {
 void process_byte(uint8_t rx_data) {
 
 	rx_buffer[rx_data_ptr++] = rx_data;
+	//commands_printf("b: %02x", rx_data);
 
-	if (rx_data_ptr == 13) {
+	if (rx_data_ptr >= 13) {
 
 		if(rx_buffer[11] == 0x32 && rx_buffer[12] == 0x0E) {
 
@@ -270,10 +278,10 @@ void process_byte(uint8_t rx_data) {
 }
 
 
-static THD_FUNCTION(packet_process_thread, arg) {
+static THD_FUNCTION(lcd_process_thread, arg) {
 	(void)arg;
 
-	chRegSetThreadName("s-lcd3 ");
+	chRegSetThreadName("s-lcd3");
 
 	process_tp = chThdGetSelfX();
 

@@ -203,6 +203,12 @@
 #define DRV8301_CS_GPIO			GPIOC
 #define DRV8301_CS_PIN			9
 
+// SWDIO Pins (app_ev)
+#define HW_SWD_PORT_IO			GPIOA
+#define HW_SWD_PIN_IO			13
+#define HW_SWD_PORT_CLK			GPIOA
+#define HW_SWD_PIN_CLK			14
+
 // Measurement macros
 #define ADC_V_L1				ADC_Value[ADC_IND_SENS1]
 #define ADC_V_L2				ADC_Value[ADC_IND_SENS2]

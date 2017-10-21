@@ -165,6 +165,7 @@ typedef struct {
 	float lo_current_motor_min_now;
 	// user limits (for limit from application)
 	float lu_current_max;	// max motor current
+	float lu_erpm_max;
 	// Sensorless (bldc)
 	float sl_min_erpm;
 	float sl_min_erpm_cycle_int_limit;
@@ -342,11 +343,13 @@ typedef struct {
 	float ramp_time_neg;
 	uint32_t update_rate_hz;
 	float wheel_factor;
+	float wheel_diameter;
 	bool use_pulse;
 	bool use_display;
 	bool use_display_vmax;
 	bool use_pas;
 	bool use_throttle;
+	bool use_throttle_wo_pas;
 	bool use_throttle_brake;
 	float mode_1_current;
 	float mode_2_current;
@@ -354,6 +357,11 @@ typedef struct {
 	float mode_4_current;
 	float mode_5_current;
 	float mode_6_current;
+	uint32_t mode_1_speed;
+	uint32_t mode_2_speed;
+	uint32_t mode_3_speed;
+	uint32_t mode_4_speed;
+	uint32_t mode_5_speed;
 	uint32_t mode_6_speed;
 
 } ev_config;

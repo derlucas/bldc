@@ -44,9 +44,11 @@ for pedaling etc).
 
 
 ### Maybe features in future:
+ - implement torque sensors like Sempu SP-B3.0 and others
  - enable more display config parameters to change stuff in controller (P and C params)
  - make the code cleaner and the display stuff more modular
  - maybe add another Display Type (send me some)
+ - make a custom PCB with all needed connectors and higher voltage support
 
 
 #### Documentation

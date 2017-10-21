@@ -31,6 +31,7 @@
 #include "encoder.h"
 #include "drv8301.h"
 #include "drv8305.h"
+#include "app.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -74,6 +75,8 @@ void terminal_process_string(char *str) {
 	static mc_configuration mcconf_old; // static to save some stack
 	mcconf = *mc_interface_get_configuration();
 	mcconf_old = mcconf;
+	static app_configuration appconf; // static to save some stack
+	appconf = *app_get_configuration();
 
 	if (strcmp(argv[0], "ping") == 0) {
 		commands_printf("pong\n");
@@ -554,6 +557,19 @@ void terminal_process_string(char *str) {
 		} else {
 			commands_printf("This command requires two arguments.\n");
 		}
+	}
+
+	else if (strcmp(argv[0], "swdio") == 0) {
+
+		if(appconf.app_to_use == APP_EV && appconf.app_ev_conf.use_pulse) {
+			app_ev_stop();
+			commands_printf("app EV stopped.");
+		}
+
+		palSetPadMode(HW_SWD_PORT_IO, HW_SWD_PIN_IO, PAL_MODE_ALTERNATE(0));
+		palSetPadMode(HW_SWD_PORT_CLK, HW_SWD_PIN_CLK, PAL_MODE_ALTERNATE(0));
+
+		commands_printf("SWD Port is now free.\n");
 	}
 
 	// The help command
