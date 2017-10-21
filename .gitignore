@@ -3,3 +3,10 @@
 build
 .dep
 build_all/*.bin
+
+.cproject
+.idea/
+.project
+.settings/
+cmake-build-debug/
+
